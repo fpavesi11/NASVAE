@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from __version__ import __version__
+from vaenas.__version__ import __version__
 
 setup(
     name='VAENAS',
@@ -10,5 +10,5 @@ setup(
     author='Federico Pavesi',
     author_email='f.pavesi11@campus.unimib.it',
 
-    packages=find_packages(),
+    packages=find_packages(include=['vaenas', 'vaenas.*']),
 )
