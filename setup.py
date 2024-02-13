@@ -10,5 +10,10 @@ setup(
     author='Federico Pavesi',
     author_email='f.pavesi11@campus.unimib.it',
 
-    packages=find_packages(include=['vaenas', 'vaenas.*']),
+    packages=find_packages(include=['vaenas', 
+                                    'vaenas.*',
+                                    'vaenas.decoders',
+                                    'vaenas.flowVAE',
+                                    'vaenas.IAF',
+                                    'vaenas.VanillaVAE']),
 )
