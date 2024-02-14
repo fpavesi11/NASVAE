@@ -205,7 +205,7 @@ class Flow(nn.Module):
             transformed x and log-determinant of Jacobian.
         """
         [B, _] = list(x.size())
-        log_det = torch.zeros(B, 1)
+        log_det = torch.zeros(B, 1).to(x.device)
         for i in range(len(self.flow)):
             x, inc = self.flow[i](x)
             log_det = log_det + inc
