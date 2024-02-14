@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 from cfg_nas.RecurrentTranslator import PickLast, KeepHidden
-from directApproach.IAF.flows import AutoregressiveLinear, Highway
-from directApproach.decoders.decoders import LinearDecoderTF, LinearDecoderV2
+from vaenas.IAF.flows import AutoregressiveLinear, Highway
+from vaenas.decoders.decoders import LinearDecoderTF, LinearDecoderV2
 
 
 class Encoder(nn.Module):
