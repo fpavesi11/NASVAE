@@ -190,7 +190,7 @@ class AutoRegressiveDecoderTF(nn.Module):
             layer_type = nn.Softmax(dim=-1)(layer_type)
             argmax = torch.argmax(layer_type, dim=-1)
             num_classes = layer_type.size(-1)
-            layer_type = torch.eye(num_classes)[argmax]
+            layer_type = torch.eye(num_classes)[argmax].to(x.device)
             features = nn.Sigmoid()(features)
             new_x_t = torch.cat([layer_type, features], dim=-1)
             new_x_t = new_x_t.unsqueeze(1)
@@ -203,7 +203,7 @@ class AutoRegressiveDecoderTF(nn.Module):
         # teacher forcing rnn
         x_out, _ = self.rnn(x_in, (h.unsqueeze(0), c.unsqueeze(0)))
         # element-wise linear 
-        new_x_out = torch.empty((x_out.size(0), x_out.size(1), self.input_size))
+        new_x_out = torch.empty((x_out.size(0), x_out.size(1), self.input_size)).to(x.device)
         for i in range(x_out.size(1)):
             new_x_out[:,i,:] = self.predictor(x_out[:,i,:])
         # apply activations
@@ -306,4 +306,3 @@ class AutoRegressiveDecoderV2(nn.Module):
         features = nn.Sigmoid()(features)
         new_x_out = torch.cat([layer_type, features], dim=-1)
         return new_x_out
-    
