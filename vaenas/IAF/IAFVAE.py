@@ -1,8 +1,8 @@
-import torch as t
+import torch
 from torch import nn
 from cfg_nas.RecurrentTranslator import PickLast, KeepHidden
-from vaenas.IAF.flows import AutoregressiveLinear, Highway
-from vaenas.decoders.decoders import LinearDecoderTF, LinearDecoderV2
+from directApproach.IAF.flows import AutoregressiveLinear, Highway
+from directApproach.decoders.decoders import LinearDecoderTF, LinearDecoderV2
 
 
 class Encoder(nn.Module):
@@ -69,7 +69,7 @@ class IAF(nn.Module):
 
         h = self.h(h)
 
-        input = t.cat([z, h], 1)
+        input = torch.cat([z, h], 1)
 
         m = self.m(input)
         s = self.s(input)
@@ -115,8 +115,8 @@ class VAE(nn.Module):
                                            max_length=max_length)
         
     def reparametrization_trick(self, mu, log_var):
-        std = t.exp(0.5 * log_var)
-        eps = t.randn_like(std)
+        std = torch.exp(0.5 * log_var)
+        eps = torch.randn_like(std)
         z = eps.mul(std).add_(mu)
         return z, eps
     
@@ -126,13 +126,13 @@ class VAE(nn.Module):
         z, eps = self.reparametrization_trick(mu, log_var)
 
         z_T = z
-        log_det = t.zeros((input.size(0),1))
+        log_det = torch.zeros((input.size(0),1)).to(input.device)
         
         # IAFlow
         for iaf_layer in self.iaf:
             z_T, log_det_t = iaf_layer(z_T, h)
             log_det += log_det_t
-            z_T = t.flip(z_T, dims=[-1]) #reverse order of z
+            z_T = torch.flip(z_T, dims=[-1]) #reverse order of z
             
         return z_T
 
@@ -144,11 +144,11 @@ class VAE(nn.Module):
         z, eps = self.reparametrization_trick(mu, log_var)
 
         z_T = z
-        log_det = t.zeros((input.size(0),1))
+        log_det = torch.zeros((input.size(0),1)).to(input.device)
         
         # IAFlow
         for iaf_layer in self.iaf:
-            z_T = t.flip(z_T, dims=[-1]) #reverse order of z
+            z_T = torch.flip(z_T, dims=[-1]) #reverse order of z
             z_T, log_det_t = iaf_layer(z_T, h)
             log_det += log_det_t
 
@@ -160,4 +160,4 @@ class VAE(nn.Module):
         return x_hat, z_T, eps, mu, log_var, log_det
 
     def generate(self, n_instances):
-        return self.decoder(t.randn((n_instances, self.latent_dimension)))
+        return self.decoder(torch.randn((n_instances, self.latent_dimension)))

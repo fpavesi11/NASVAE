@@ -1,8 +1,8 @@
 import math
 
-import torch as t
+import torch 
 import torch.nn as nn
-from torch.nn.init import xavier_normal
+from torch.nn.init import xavier_normal_ as xavier_normal
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 
@@ -18,10 +18,10 @@ class AutoregressiveLinear(nn.Module):
         self.in_size = in_size
         self.out_size = out_size
 
-        self.weight = Parameter(t.Tensor(self.in_size, self.out_size))
+        self.weight = Parameter(torch.Tensor(self.in_size, self.out_size))
 
         if bias:
-            self.bias = Parameter(t.Tensor(self.out_size))
+            self.bias = Parameter(torch.Tensor(self.out_size))
         else:
             self.register_parameter('bias', None)
 
@@ -37,7 +37,7 @@ class AutoregressiveLinear(nn.Module):
 
     def forward(self, input):
         if input.dim() == 2 and self.bias is not None:
-            return t.addmm(self.bias, input, self.weight.tril(-1))
+            return torch.addmm(self.bias, input, self.weight.tril(-1))
 
         output = input @ self.weight.tril(-1)
         if self.bias is not None:
@@ -51,9 +51,9 @@ class Highway(nn.Module):
 
         self.num_layers = num_layers
 
-        self.nonlinear = nn.ModuleList([nn.utils.weight_norm(nn.Linear(size, size)) for _ in range(num_layers)])
-        self.linear = nn.ModuleList([nn.utils.weight_norm(nn.Linear(size, size)) for _ in range(num_layers)])
-        self.gate = nn.ModuleList([nn.utils.weight_norm(nn.Linear(size, size)) for _ in range(num_layers)])
+        self.nonlinear = nn.ModuleList([nn.utils.parametrizations.weight_norm(nn.Linear(size, size)) for _ in range(num_layers)])
+        self.linear = nn.ModuleList([nn.utils.parametrizations.weight_norm(nn.Linear(size, size)) for _ in range(num_layers)])
+        self.gate = nn.ModuleList([nn.utils.parametrizations.weight_norm(nn.Linear(size, size)) for _ in range(num_layers)])
 
         self.f = f
 
@@ -67,7 +67,7 @@ class Highway(nn.Module):
             """
 
         for layer in range(self.num_layers):
-            gate = F.sigmoid(self.gate[layer](x))
+            gate = nn.Sigmoid()(self.gate[layer](x))
 
             nonlinear = self.f(self.nonlinear[layer](x))
             linear = self.linear[layer](x)
@@ -75,5 +75,3 @@ class Highway(nn.Module):
             x = gate * nonlinear + (1 - gate) * linear
 
         return x
-
-
