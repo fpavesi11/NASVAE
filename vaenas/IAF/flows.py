@@ -44,7 +44,55 @@ class AutoregressiveLinear(nn.Module):
             output += self.bias
         return output
     
-    
+
+
+###
+# HIGHWAY AS IMPLEMENTED IN GERMAIN 2018 PAPER (MADE) WITH THE SUGGESTION
+# FROM IAF PAPER OF ADDING HIDDEN STATE
+###
+
+class HighwayStandard(nn.Module):
+    def __init__(self, size, bias=True):
+        
+        super(HighwayStandard, self).__init__()
+
+        self.size=size
+
+        self.weight_x = Parameter(torch.Tensor(size, size))
+        
+        self.weight_h = Parameter(torch.Tensor(size, size))
+
+        if bias:
+            self.bias = Parameter(torch.Tensor(size))
+        else:
+            self.register_parameter('bias', None)
+
+        self.reset_parameters()
+        
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.size)
+
+        self.weight_x = xavier_normal(self.weight_x)
+        self.weight_h = xavier_normal(self.weight_h)
+
+        if self.bias is not None:
+            self.bias.data.uniform_(-stdv, stdv)
+
+    def forward(self, x, h):
+        """
+        h(x) = (W_x * M) @ x + W_h @ h + b    
+        """
+        out = x @ self.weight_x.tril(-1) + h @ self.weight_h
+        if self.bias is not None:
+            out += self.bias
+        return out
+
+
+
+
+####
+# HIGHWAY AS IMPLEMENTED IN THIS REPOSITORY
+###    
 class Highway(nn.Module):
     def __init__(self, size, num_layers, f):
         super(Highway, self).__init__()
