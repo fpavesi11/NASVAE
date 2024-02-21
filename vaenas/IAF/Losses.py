@@ -57,7 +57,7 @@ class VAELoss(_Loss):
             if self.kl_weight > 1:
                 self.kl_weight = 1
         
-        overall_loss = reconstructon_loss.sum() + self.kl_weight * KL_div
+        overall_loss = reconstructon_loss + self.kl_weight * KL_div
         
         if self.reduction == 'sum':
             overall_loss = overall_loss.sum()
