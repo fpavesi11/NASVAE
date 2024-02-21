@@ -57,15 +57,18 @@ CUSTOM RECOGNITION LOSS FOR LINEAR
 """
 
 class CustomReconLosslinear(_Loss):
-    def __init__(self, reduction='sum'):
+    def __init__(self, reduction='none'):
         super(CustomReconLosslinear, self).__init__()
-        self.reduction = reduction
-        self.mse_loss = nn.MSELoss(reduction=reduction)
-        self.celoss = nn.CrossEntropyLoss(reduction=reduction)
+        self.reduction = 'none'
+        self.mse_loss = nn.MSELoss(reduction=self.reduction)
+        self.celoss = nn.CrossEntropyLoss(reduction=self.reduction)
     
     def forward(self, x_hat, x):
         features_loss = self.mse_loss(x_hat[:,:,-1], x[:,:,-1]).sum(-1, keepdim=True)
-        category_loss = self.celoss(x_hat[:,:,:-1], x[:,:,:-1]).sum(-1, keepdim=True)
+        category_loss = torch.zeros((x.size(0), x.size(1))).to(x.device)
+        for row in range(x.size(1)): #length of the network
+            category_loss[:,row] += self.celoss(x_hat[:,row,:-1], x[:,row,:-1])
+        category_loss = category_loss.sum(-1, keepdim=True)
         return features_loss, category_loss
     
     
