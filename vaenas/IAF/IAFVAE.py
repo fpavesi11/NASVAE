@@ -72,7 +72,7 @@ class IAFStandard(nn.Module):
         m = self.passage(self.m, z, h)
         s = self.passage(self.s, z, h)
         
-        s = nn.Sigmoid()(s)
+        s = nn.Sigmoid()(s) + 1e-40 #the addition of this little perturbation stabilizes the determinant (always != inf)
 
         z = s * z + (1 - s) * m
 
