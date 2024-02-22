@@ -40,7 +40,7 @@ class Encoder(nn.Module):
 ###
 
 class IAFStandard(nn.Module):
-    def __init__(self, latent_size):
+    def __init__(self, latent_size, squish_range=80, squish_steep=0.02):
         super(IAFStandard, self).__init__()
 
         self.latent_size = latent_size
@@ -55,8 +55,9 @@ class IAFStandard(nn.Module):
             HighwayStandard(self.latent_size),
             nn.ELU(),
             AutoregressiveLinear(self.latent_size, self.latent_size),
-            CustomSigmoid(range=80, steep=0.02) #keeps values in a non exploding/vanishing range
         ])
+        
+        self.squisher = CustomSigmoid(range=squish_range, steep=squish_steep) #keeps values in a non exploding/vanishing range
     
     @staticmethod
     def passage(module, z, h):
@@ -73,6 +74,8 @@ class IAFStandard(nn.Module):
 
         m = self.passage(self.m, z, h)
         s = self.passage(self.s, z, h)
+        
+        s = self.squisher(s)
         
         s = nn.Sigmoid()(s) #+ 1e-40 #the addition of this little perturbation stabilizes the determinant (always != inf)
 
@@ -224,14 +227,15 @@ class VAE(nn.Module):
 
 class VAEStandard(nn.Module):
     def __init__(self, input_size, hidden_size, latent_dimension, max_length, flow_depth=1, teacher_forcing=False,
-                 use_predict=False):
+                 use_predict=False, squish_range=80, squish_steep=0.02):
         super(VAEStandard, self).__init__()
         
         self.latent_dimension = latent_dimension
 
         self.encoder = Encoder(input_size=input_size, latent_dimension=latent_dimension)
 
-        self.iaf = nn.ModuleList(IAFStandard(latent_size=latent_dimension) for _ in range(flow_depth))
+        self.iaf = nn.ModuleList(IAFStandard(latent_size=latent_dimension, squish_range=squish_range, squish_steep=squish_steep) 
+                                 for _ in range(flow_depth))
 
         self.teacher_forcing = teacher_forcing
         if teacher_forcing:
@@ -279,6 +283,7 @@ class VAEStandard(nn.Module):
         log_det = torch.zeros((input.size(0),1)).to(input.device)
         
         # IAFlow
+        # ENCODED 
         for iaf_layer in self.iaf:
             z_T = torch.flip(z_T, dims=[-1]) #reverse order of z
             z_T, log_det_t = iaf_layer(z_T, h)
