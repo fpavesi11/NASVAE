@@ -3,6 +3,7 @@ from torch import nn
 from cfg_nas.RecurrentTranslator import PickLast, KeepHidden
 from vaenas.IAF.flows import AutoregressiveLinear, Highway, HighwayStandard
 from vaenas.decoders.decoders import LinearDecoderTF, LinearDecoderV2
+from vaenas.Utils import CustomSigmoid
 
 
 class Encoder(nn.Module):
@@ -53,7 +54,8 @@ class IAFStandard(nn.Module):
         self.s = nn.ModuleList([
             HighwayStandard(self.latent_size),
             nn.ELU(),
-            AutoregressiveLinear(self.latent_size, self.latent_size)
+            AutoregressiveLinear(self.latent_size, self.latent_size),
+            CustomSigmoid(range=80, steep=0.02) #keeps values in a non exploding/vanishing range
         ])
     
     @staticmethod
@@ -72,7 +74,7 @@ class IAFStandard(nn.Module):
         m = self.passage(self.m, z, h)
         s = self.passage(self.s, z, h)
         
-        s = nn.Sigmoid()(s) + 1e-40 #the addition of this little perturbation stabilizes the determinant (always != inf)
+        s = nn.Sigmoid()(s) #+ 1e-40 #the addition of this little perturbation stabilizes the determinant (always != inf)
 
         z = s * z + (1 - s) * m
 

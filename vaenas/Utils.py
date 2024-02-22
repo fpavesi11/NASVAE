@@ -3,6 +3,10 @@ from torch.nn.modules.loss import _Loss
 from torch import nn
 
 
+"""
+ENCODER OF NEURAL NETWORK ARCHITECTURE INPUT
+"""
+
 class NetworkEncoder: 
     def __init__(self, grammar, max_length, dtype=torch.float32):
         self.grammar = grammar
@@ -50,6 +54,26 @@ class NetworkEncoder:
             encoded_networks.append(encoder(network))
         encoded_networks = torch.cat(encoded_networks, dim=0)
         return encoded_networks
+
+
+"""
+CUSTOM SIGMOID
+
+It smoothly forces input in a certain range to avoid vanishing or exploding gradients
+during IAF
+
+Notice: 80 is a value very close to the saturation of the sigmoid but in which still
+the gradient flows
+
+"""
+class CustomSigmoid(nn.Module):
+    def __init__(self, range=80, steep=0.02):
+        super(CustomSigmoid, self).__init__()
+        self.range = range
+        self.steep = steep
+        
+    def forward(self, x):
+        return (2*self.range)/(1 + torch.exp(-x * self.steep)) - self.range
     
     
 """
