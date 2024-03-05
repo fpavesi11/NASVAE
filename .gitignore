@@ -3,4 +3,6 @@ distributionApproach/
 directapproach/
 .vscode/
 __pycache__/
+WassVAE/
+JKO_VAE/
 

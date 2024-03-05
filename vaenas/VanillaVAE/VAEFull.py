@@ -20,7 +20,7 @@ class mask_out(nn.Module):
         super(mask_out, self).__init__()
 
     def forward(self, x):
-        mask = torch.tril(torch.ones(x.size(1), x.size(2)), diagonal=-1)
+        mask = torch.tril(torch.ones(x.size(1), x.size(2)), diagonal=-1).to(x)
         return x * mask
 
 
@@ -60,7 +60,7 @@ class ReparametrizationTrickFull(nn.Module):
         super(ReparametrizationTrickFull, self).__init__()
 
     def forward(self, mu, log_sigma, L_mask):
-        L_diag = L_mask + torch.diag_embed(torch.exp(log_sigma)) #notice here is sigma, while in standard vae is sigma2
+        L_diag = L_mask + torch.diag_embed(torch.exp(log_sigma)).to(mu) #notice here is sigma, while in standard vae is sigma2
         z = mu + torch.bmm(L_diag, torch.randn_like(mu).unsqueeze(-1)).squeeze(-1)
         return z, L_diag
 
