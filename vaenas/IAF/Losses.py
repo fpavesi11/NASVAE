@@ -48,7 +48,7 @@ class VAELoss(_Loss):
         
         # MC DENSITY DIFFERENCE APPROACH (IAF Paper)
         log_q_z = -0.5 * (log_var + eps.pow(2) + torch.log(2 * torch.tensor(pi))).sum(-1, keepdim=True) - log_det
-        log_p_z = -0.5 * (z.pow(2) + torch.log(2 * torch.tensor(pi))).sum(-1, keepdim=True)
+        log_p_z = -0.5 * (eps.pow(2) + torch.log(2 * torch.tensor(pi))).sum(-1, keepdim=True)
         KL_div = log_q_z - log_p_z
 
         # Bowman method
@@ -118,7 +118,7 @@ class VAELossV2(_Loss):
         
         # MC DENSITY DIFFERENCE APPROACH (IAF Paper)
         log_q_z = -0.5 * (log_var + eps.pow(2) + torch.log(2 * torch.tensor(pi))).sum(-1, keepdim=True) - log_det
-        log_p_z = -0.5 * (z.pow(2) + torch.log(2 * torch.tensor(pi))).sum(-1, keepdim=True)
+        log_p_z = -0.5 * (eps.pow(2) + torch.log(2 * torch.tensor(pi))).sum(-1, keepdim=True)
         KL_div = log_q_z - log_p_z
 
         if self.kl_weight_frac < 1 and self.alpha is not None:
