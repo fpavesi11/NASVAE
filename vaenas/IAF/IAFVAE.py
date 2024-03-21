@@ -7,7 +7,7 @@ from vaenas.Utils import CustomSigmoid
 
 
 class Encoder(nn.Module):
-    def __init__(self, input_size, latent_dimension):
+    def __init__(self, input_size, latent_dimension, squish_range=80, squish_steep=0.02):
         super(Encoder, self).__init__()
         self.input_size = input_size
         self.latent_dimension = latent_dimension
@@ -21,8 +21,9 @@ class Encoder(nn.Module):
         self.estim_mu = nn.Linear(in_features=512,
                                   out_features=latent_dimension)
         
-        self.estim_log_var = nn.Linear(in_features=512,
-                                         out_features=latent_dimension)
+        self.estim_log_var = nn.Sequential(nn.Linear(in_features=512,
+                                            out_features=latent_dimension),
+                                           CustomSigmoid(range=squish_range, steep=squish_steep)) #keeps values in a non exploding/vanishing range)
         
         self.estim_h = nn.Linear(in_features=512,
                                  out_features=latent_dimension)
@@ -232,7 +233,7 @@ class VAEStandard(nn.Module):
         
         self.latent_dimension = latent_dimension
 
-        self.encoder = Encoder(input_size=input_size, latent_dimension=latent_dimension)
+        self.encoder = Encoder(input_size=input_size, latent_dimension=latent_dimension, squish_range=squish_range, squish_steep=squish_steep)
 
         self.iaf = nn.ModuleList(IAFStandard(latent_size=latent_dimension, squish_range=squish_range, squish_steep=squish_steep) 
                                  for _ in range(flow_depth))
